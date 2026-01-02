@@ -1,6 +1,6 @@
 
-import React, { useState, useCallback } from 'react';
-import { Sparkles, BookOpen, AlertCircle, RefreshCw, ChevronDown, Download, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, BookOpen, AlertCircle, RefreshCw, Download, User } from 'lucide-react';
 import { MagicButton } from './components/MagicButton';
 import { StoryCard } from './components/StoryCard';
 import { generateStoryStructure, generateIllustration } from './services/geminiService';
@@ -9,7 +9,7 @@ import { Story, AppStatus, StoryParams } from './types';
 const App: React.FC = () => {
   const [params, setParams] = useState<StoryParams>({
     keywords: '',
-    moral: '誠實的重要性',
+    moral: '團隊合作的力量',
     style: '彩色水彩繪本風格，角色溫柔可愛'
   });
 
@@ -28,12 +28,10 @@ const App: React.FC = () => {
       setStatus(AppStatus.WRITING);
       setStory(null);
 
-      // 1. Generate story text
       const newStory = await generateStoryStructure(params.keywords, params.moral, params.style);
       setStory(newStory);
       setStatus(AppStatus.ILLUSTRATING);
 
-      // 2. Generate illustrations sequentially to show progress
       const updatedPages = [...newStory.pages];
       for (let i = 0; i < updatedPages.length; i++) {
         try {
@@ -41,7 +39,7 @@ const App: React.FC = () => {
           updatedPages[i] = { ...updatedPages[i], imageUrl: imgUrl };
           setStory(prev => prev ? { ...prev, pages: [...updatedPages] } : null);
         } catch (err) {
-          console.error(`Failed to generate image for page ${i+1}`, err);
+          console.error(`Page ${i+1} image error:`, err);
         }
       }
 
@@ -49,7 +47,7 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       setStatus(AppStatus.ERROR);
-      setErrorMessage(err.message || '發生未知錯誤，請稍後再試。');
+      setErrorMessage(err.message || '魔法連線中斷，請確認 API Key 是否設定正確。');
     }
   };
 
@@ -60,8 +58,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-amber-50 text-gray-800 pb-10 px-4 flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen bg-[#fdf6e3] text-gray-800 pb-10 px-4 flex flex-col">
       <header className="max-w-4xl mx-auto pt-12 pb-8 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-3 rounded-2xl shadow-lg">
@@ -72,41 +69,37 @@ const App: React.FC = () => {
           </h1>
         </div>
         
-        {/* Author Tag */}
-        <div className="inline-flex items-center gap-2 bg-white/50 backdrop-blur-sm px-4 py-1.5 rounded-full border border-purple-100 mb-6 shadow-sm">
+        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-purple-100 mb-6 shadow-sm">
           <User className="w-4 h-4 text-purple-500" />
           <span className="text-purple-600 font-bold text-sm">作者：Jacky鐘</span>
         </div>
 
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          將課堂上的隨機點子，轉化為啟迪心靈的奇幻繪本。讓品格教育、班級凝聚力在魔法中萌芽。
+        <p className="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+          將課堂點子化為啟迪心靈的繪本。讓品格教育在魔法中萌芽。
         </p>
       </header>
 
       <main className="max-w-5xl mx-auto flex-grow w-full">
         {status === AppStatus.IDLE && (
-          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border-2 border-amber-100">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border-2 border-amber-100 animate-in fade-in slide-in-from-bottom-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-lg font-bold text-gray-700 mb-2 flex items-center gap-2">
+                  <label className="block text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-purple-500" /> 故事關鍵字
                   </label>
                   <textarea
-                    className="w-full h-32 p-4 rounded-2xl bg-amber-50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg"
-                    placeholder="例如：營養午餐、外星人、不想寫作業..."
+                    className="w-full h-40 p-4 rounded-2xl bg-amber-50/50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg shadow-inner"
+                    placeholder="輸入課堂趣事，例如：小明帶了彩色青蛙、外星人來校餐..."
                     value={params.keywords}
                     onChange={(e) => setParams({ ...params, keywords: e.target.value })}
                   />
-                  <p className="mt-2 text-sm text-gray-500 italic">💡 試著加入學生的名字或近期班級發生的趣事！</p>
                 </div>
 
                 <div>
-                  <label className="block text-lg font-bold text-gray-700 mb-2">
-                    教育重點 / 寓意
-                  </label>
+                  <label className="block text-lg font-bold text-gray-700 mb-3">教育重點</label>
                   <select
-                    className="w-full p-4 rounded-2xl bg-amber-50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg appearance-none cursor-pointer shadow-sm"
+                    className="w-full p-4 rounded-2xl bg-amber-50/50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg shadow-inner cursor-pointer"
                     value={params.moral}
                     onChange={(e) => setParams({ ...params, moral: e.target.value })}
                   >
@@ -115,39 +108,39 @@ const App: React.FC = () => {
                     <option value="尊重每個人的獨特性">尊重每個人的獨特性</option>
                     <option value="面對失敗的勇氣">面對失敗的勇氣</option>
                     <option value="愛護環境與珍惜資源">愛護環境與珍惜資源</option>
-                    <option value="幽默感與快樂學習">幽默感與快樂學習</option>
                   </select>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-lg font-bold text-gray-700 mb-2">
-                    插畫魔法風格
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {[
-                      { name: '水彩溫馨', prompt: '彩色水彩繪本風格，角色溫柔可愛' },
-                      { name: '手繪蠟筆', prompt: '充滿童趣的蠟筆畫風格，色彩鮮豔' },
-                      { name: '像素冒險', prompt: '復古像素藝術風格，具有電子遊戲感' },
-                      { name: '3D 立體', prompt: '現代 3D 動畫風格，明亮且充滿細節' },
-                    ].map((style) => (
-                      <button
-                        key={style.name}
-                        onClick={() => setParams({ ...params, style: style.prompt })}
-                        className={`p-4 rounded-2xl border-2 transition-all shadow-sm ${
-                          params.style === style.prompt 
-                            ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold scale-[1.02]' 
-                            : 'border-amber-100 bg-white hover:border-amber-200'
-                        }`}
-                      >
-                        {style.name}
-                      </button>
-                    ))}
+                  <label className="block text-lg font-bold text-gray-700 mb-3">繪本風格</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['水彩溫馨', '手繪蠟筆', '像素冒險', '3D 立體'].map((styleName) => {
+                      const stylePromptMap: Record<string, string> = {
+                        '水彩溫馨': '彩色水彩繪本風格，角色溫柔可愛',
+                        '手繪蠟筆': '充滿童趣的蠟筆畫風格，色彩鮮豔',
+                        '像素冒險': '復古像素藝術風格，具有電子遊戲感',
+                        '3D 立體': '現代 3D 動畫風格，明亮且充滿細節'
+                      };
+                      return (
+                        <button
+                          key={styleName}
+                          onClick={() => setParams({ ...params, style: stylePromptMap[styleName] })}
+                          className={`p-4 rounded-xl border-2 transition-all ${
+                            params.style === stylePromptMap[styleName] 
+                              ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold' 
+                              : 'border-amber-100 bg-white hover:border-amber-200'
+                          }`}
+                        >
+                          {styleName}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="flex flex-col items-center justify-center h-full pt-4">
+                <div className="flex flex-col items-center justify-center pt-6">
                   <MagicButton 
                     onClick={handleGenerate} 
                     loading={status !== AppStatus.IDLE}
@@ -167,132 +160,77 @@ const App: React.FC = () => {
         )}
 
         {(status === AppStatus.WRITING || status === AppStatus.ILLUSTRATING) && (
-          <div className="flex flex-col items-center justify-center py-20 animate-in fade-in zoom-in duration-500">
-            <div className="relative mb-12">
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="relative mb-10">
               <div className="absolute inset-0 bg-purple-400 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-              <div className="relative bg-white p-8 rounded-full shadow-2xl border-4 border-purple-100">
-                <BookOpen className="w-20 h-20 text-purple-500 animate-bounce" />
-              </div>
-              <div className="absolute -top-4 -right-4">
-                <Sparkles className="w-10 h-10 text-pink-400 animate-pulse" />
-              </div>
+              <BookOpen className="w-24 h-24 text-purple-500 animate-bounce relative z-10" />
             </div>
-            <h2 className="text-3xl font-bold text-purple-600 mb-4 text-center">
-              {status === AppStatus.WRITING ? '正在撰寫奇幻劇本...' : '魔法畫筆繪製中...'}
+            <h2 className="text-3xl font-bold text-purple-700 mb-4">
+              {status === AppStatus.WRITING ? '正在構思奇幻情節...' : '魔法畫筆繪製中...'}
             </h2>
-            <p className="text-gray-500 text-lg text-center">這可能需要幾十秒的時間，魔法正在匯聚中</p>
-            
+            <p className="text-gray-500 text-lg">Jacky鐘的魔法畫室正在為您服務</p>
             {story && (
-              <div className="mt-12 w-full max-w-2xl space-y-4 px-4">
-                <div className="flex justify-between items-center px-4">
-                  <span className="text-sm font-bold text-purple-400 uppercase tracking-widest">魔法進度</span>
-                  <span className="text-sm font-bold text-purple-600">
-                    {Math.round((story.pages.filter(p => p.imageUrl).length / story.pages.length) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full h-4 bg-purple-100 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000"
-                    style={{ width: `${(story.pages.filter(p => p.imageUrl).length / story.pages.length) * 100}%` }}
-                  ></div>
-                </div>
+              <div className="mt-12 w-full max-w-md bg-white p-2 rounded-full shadow-inner border border-purple-100">
+                <div 
+                  className="h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700"
+                  style={{ width: `${(story.pages.filter(p => p.imageUrl).length / story.pages.length) * 100}%` }}
+                ></div>
               </div>
             )}
           </div>
         )}
 
         {(status === AppStatus.FINISHED || (status === AppStatus.ILLUSTRATING && story)) && (
-          <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 px-4">
-              <div className="flex flex-col items-center md:items-start">
-                <h2 className="text-4xl font-black text-purple-800 text-center md:text-left">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 px-2">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
+              <div className="text-center md:text-left">
+                <h2 className="text-4xl font-black text-purple-900 mb-2">
                   📖 {story?.title}
                 </h2>
-                <span className="text-purple-400 font-medium text-sm mt-1">故事繪製：班級專屬繪本魔法師 | 作者：Jacky鐘</span>
+                <div className="flex items-center gap-2 text-purple-500 font-bold">
+                   <User className="w-4 h-4" /> 作者：Jacky鐘
+                </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <button
                   onClick={handleReset}
-                  className="flex items-center gap-2 px-6 py-2 bg-white rounded-full text-purple-600 font-bold border-2 border-purple-100 hover:bg-purple-50 transition-colors shadow-sm active:scale-95"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-white rounded-full text-purple-600 font-bold border-2 border-purple-100 hover:bg-purple-50 transition-all shadow-sm active:scale-95"
                 >
                   <RefreshCw className="w-5 h-5" /> 重新創作
                 </button>
                 {status === AppStatus.FINISHED && (
                   <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 px-6 py-2 bg-purple-600 rounded-full text-white font-bold hover:bg-purple-700 transition-colors shadow-lg active:scale-95"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 rounded-full text-white font-bold hover:bg-purple-700 transition-all shadow-lg active:scale-95"
                   >
-                    <Download className="w-5 h-5" /> 列印分享
+                    <Download className="w-5 h-5" /> 列印繪本
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-10">
               {story?.pages.map((page, idx) => (
-                <StoryCard 
-                  key={idx} 
-                  page={page} 
-                  pageNumber={idx + 1} 
-                />
+                <StoryCard key={idx} page={page} pageNumber={idx + 1} />
               ))}
             </div>
 
-            {status === AppStatus.ILLUSTRATING && (
-              <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-8 py-4 rounded-full shadow-2xl border-2 border-purple-200 flex items-center gap-4 animate-bounce z-50">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                <span className="text-purple-700 font-bold">插畫師正在加緊趕工...</span>
-              </div>
-            )}
-
             {status === AppStatus.FINISHED && (
-              <div className="mt-16 text-center pb-20">
-                <div className="inline-block p-12 bg-white rounded-[3rem] shadow-xl border-4 border-amber-100 relative max-w-2xl">
-                  <div className="absolute -top-8 -left-8 bg-pink-400 text-white p-4 rounded-full shadow-lg rotate-12">
-                    <Sparkles className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4">故事魔法結語</h3>
-                  <p className="text-xl text-gray-600 italic">「每一個故事，都是一顆種子，在孩子的心中開出善良的花。」</p>
-                  <div className="mt-8 flex flex-col items-center gap-2">
-                    <MagicButton onClick={handleReset}>創作下一個故事</MagicButton>
-                    <span className="text-gray-400 text-sm mt-4">作者：Jacky鐘 祝福您與孩子有段美好的共讀時光</span>
-                  </div>
-                </div>
-              </div>
+              <footer className="mt-20 text-center pb-20 border-t border-amber-200 pt-16">
+                 <p className="text-2xl font-bold text-purple-800 mb-4">✨ 魔法繪本創作完成 ✨</p>
+                 <p className="text-gray-500 mb-8">希望這份由 Jacky鐘 為您準備的故事，能讓孩子們感受到魔法的驚喜！</p>
+                 <MagicButton onClick={handleReset}>創作下一個故事</MagicButton>
+              </footer>
             )}
-          </div>
-        )}
-
-        {status === AppStatus.ERROR && (
-          <div className="bg-white rounded-3xl shadow-xl p-12 text-center border-4 border-red-50 max-w-2xl mx-auto">
-            <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-10 h-10 text-red-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">喔不！魔法好像失效了</h2>
-            <p className="text-gray-500 mb-8">{errorMessage}</p>
-            <MagicButton onClick={handleReset}>重試一次魔法</MagicButton>
           </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="max-w-4xl mx-auto mt-20 pt-8 border-t border-amber-200 text-center text-gray-400 pb-8 w-full">
-        <div className="flex flex-col items-center gap-2">
-          <p className="font-medium">© 2024 班級專屬繪本魔法師 | 版權所有</p>
-          <p className="flex items-center gap-1">
-            <User className="w-3 h-3" /> 設計開發：<span className="text-purple-400 font-bold">Jacky鐘</span>
-          </p>
-          <p className="text-xs mt-2 opacity-60">Powered by Google Gemini 2.5 & 3.0 API</p>
-        </div>
+      <footer className="mt-auto py-8 text-center border-t border-amber-200/50">
+        <p className="text-gray-400 text-sm font-medium">
+          © 2025 班級專屬繪本魔法師 | 開發者：<span className="text-purple-400">Jacky鐘</span>
+        </p>
       </footer>
-
-      {/* Background elements */}
-      <div className="fixed top-20 left-10 opacity-10 pointer-events-none hidden lg:block">
-        <Sparkles className="w-24 h-24 text-purple-400 rotate-12" />
-      </div>
-      <div className="fixed bottom-20 right-10 opacity-10 pointer-events-none hidden lg:block">
-        <BookOpen className="w-24 h-24 text-pink-400 -rotate-12" />
-      </div>
     </div>
   );
 };

@@ -1,10 +1,11 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Story, StoryPage } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+import { Story } from "../types";
 
 export async function generateStoryStructure(keywords: string, moral: string, style: string): Promise<Story> {
+  // 每次呼叫時才建立實例，確保環境變數已準備就緒
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const prompt = `你是一位世界級的兒童繪本作家與國小老師。
 請根據以下關鍵字創作一個生動、有趣的短篇故事：
 關鍵字：${keywords}
@@ -48,6 +49,8 @@ export async function generateStoryStructure(keywords: string, moral: string, st
 }
 
 export async function generateIllustration(visualPrompt: string): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
@@ -68,5 +71,5 @@ export async function generateIllustration(visualPrompt: string): Promise<string
     }
   }
   
-  throw new Error("Failed to generate image");
+  throw new Error("無法生成圖片，請檢查 API Key 或網路連線。");
 }
