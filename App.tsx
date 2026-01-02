@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
-import { Sparkles, BookOpen, AlertCircle, RefreshCw, ChevronDown, Download } from 'lucide-react';
+import { Sparkles, BookOpen, AlertCircle, RefreshCw, ChevronDown, Download, User } from 'lucide-react';
 import { MagicButton } from './components/MagicButton';
 import { StoryCard } from './components/StoryCard';
 import { generateStoryStructure, generateIllustration } from './services/geminiService';
@@ -42,7 +42,6 @@ const App: React.FC = () => {
           setStory(prev => prev ? { ...prev, pages: [...updatedPages] } : null);
         } catch (err) {
           console.error(`Failed to generate image for page ${i+1}`, err);
-          // Don't stop the whole process if one image fails
         }
       }
 
@@ -61,7 +60,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-amber-50 text-gray-800 pb-20 px-4">
+    <div className="min-h-screen bg-amber-50 text-gray-800 pb-10 px-4 flex flex-col">
       {/* Header */}
       <header className="max-w-4xl mx-auto pt-12 pb-8 text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
@@ -72,12 +71,19 @@ const App: React.FC = () => {
             班級專屬繪本魔法師
           </h1>
         </div>
+        
+        {/* Author Tag */}
+        <div className="inline-flex items-center gap-2 bg-white/50 backdrop-blur-sm px-4 py-1.5 rounded-full border border-purple-100 mb-6 shadow-sm">
+          <User className="w-4 h-4 text-purple-500" />
+          <span className="text-purple-600 font-bold text-sm">作者：Jacky鐘</span>
+        </div>
+
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
           將課堂上的隨機點子，轉化為啟迪心靈的奇幻繪本。讓品格教育、班級凝聚力在魔法中萌芽。
         </p>
       </header>
 
-      <main className="max-w-5xl mx-auto">
+      <main className="max-w-5xl mx-auto flex-grow w-full">
         {status === AppStatus.IDLE && (
           <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border-2 border-amber-100">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -100,7 +106,7 @@ const App: React.FC = () => {
                     教育重點 / 寓意
                   </label>
                   <select
-                    className="w-full p-4 rounded-2xl bg-amber-50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg appearance-none cursor-pointer"
+                    className="w-full p-4 rounded-2xl bg-amber-50 border-2 border-transparent focus:border-purple-400 focus:bg-white outline-none transition-all text-lg appearance-none cursor-pointer shadow-sm"
                     value={params.moral}
                     onChange={(e) => setParams({ ...params, moral: e.target.value })}
                   >
@@ -129,9 +135,9 @@ const App: React.FC = () => {
                       <button
                         key={style.name}
                         onClick={() => setParams({ ...params, style: style.prompt })}
-                        className={`p-4 rounded-2xl border-2 transition-all ${
+                        className={`p-4 rounded-2xl border-2 transition-all shadow-sm ${
                           params.style === style.prompt 
-                            ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold' 
+                            ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold scale-[1.02]' 
                             : 'border-amber-100 bg-white hover:border-amber-200'
                         }`}
                       >
@@ -171,20 +177,20 @@ const App: React.FC = () => {
                 <Sparkles className="w-10 h-10 text-pink-400 animate-pulse" />
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-purple-600 mb-4">
+            <h2 className="text-3xl font-bold text-purple-600 mb-4 text-center">
               {status === AppStatus.WRITING ? '正在撰寫奇幻劇本...' : '魔法畫筆繪製中...'}
             </h2>
-            <p className="text-gray-500 text-lg">這可能需要幾十秒的時間，魔法正在匯聚中</p>
+            <p className="text-gray-500 text-lg text-center">這可能需要幾十秒的時間，魔法正在匯聚中</p>
             
             {story && (
-              <div className="mt-12 w-full max-w-2xl space-y-4">
+              <div className="mt-12 w-full max-w-2xl space-y-4 px-4">
                 <div className="flex justify-between items-center px-4">
                   <span className="text-sm font-bold text-purple-400 uppercase tracking-widest">魔法進度</span>
                   <span className="text-sm font-bold text-purple-600">
                     {Math.round((story.pages.filter(p => p.imageUrl).length / story.pages.length) * 100)}%
                   </span>
                 </div>
-                <div className="w-full h-4 bg-purple-100 rounded-full overflow-hidden">
+                <div className="w-full h-4 bg-purple-100 rounded-full overflow-hidden shadow-inner">
                   <div 
                     className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000"
                     style={{ width: `${(story.pages.filter(p => p.imageUrl).length / story.pages.length) * 100}%` }}
@@ -197,21 +203,24 @@ const App: React.FC = () => {
 
         {(status === AppStatus.FINISHED || (status === AppStatus.ILLUSTRATING && story)) && (
           <div className="animate-in fade-in slide-in-from-bottom-10 duration-700">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
-              <h2 className="text-4xl font-black text-purple-800 text-center md:text-left">
-                📖 {story?.title}
-              </h2>
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 px-4">
+              <div className="flex flex-col items-center md:items-start">
+                <h2 className="text-4xl font-black text-purple-800 text-center md:text-left">
+                  📖 {story?.title}
+                </h2>
+                <span className="text-purple-400 font-medium text-sm mt-1">故事繪製：班級專屬繪本魔法師 | 作者：Jacky鐘</span>
+              </div>
               <div className="flex gap-4">
                 <button
                   onClick={handleReset}
-                  className="flex items-center gap-2 px-6 py-2 bg-white rounded-full text-purple-600 font-bold border-2 border-purple-100 hover:bg-purple-50 transition-colors shadow-sm"
+                  className="flex items-center gap-2 px-6 py-2 bg-white rounded-full text-purple-600 font-bold border-2 border-purple-100 hover:bg-purple-50 transition-colors shadow-sm active:scale-95"
                 >
                   <RefreshCw className="w-5 h-5" /> 重新創作
                 </button>
                 {status === AppStatus.FINISHED && (
                   <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 px-6 py-2 bg-purple-600 rounded-full text-white font-bold hover:bg-purple-700 transition-colors shadow-lg"
+                    className="flex items-center gap-2 px-6 py-2 bg-purple-600 rounded-full text-white font-bold hover:bg-purple-700 transition-colors shadow-lg active:scale-95"
                   >
                     <Download className="w-5 h-5" /> 列印分享
                   </button>
@@ -230,7 +239,7 @@ const App: React.FC = () => {
             </div>
 
             {status === AppStatus.ILLUSTRATING && (
-              <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-8 py-4 rounded-full shadow-2xl border-2 border-purple-200 flex items-center gap-4 animate-bounce">
+              <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-8 py-4 rounded-full shadow-2xl border-2 border-purple-200 flex items-center gap-4 animate-bounce z-50">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
                 <span className="text-purple-700 font-bold">插畫師正在加緊趕工...</span>
               </div>
@@ -238,14 +247,15 @@ const App: React.FC = () => {
 
             {status === AppStatus.FINISHED && (
               <div className="mt-16 text-center pb-20">
-                <div className="inline-block p-12 bg-white rounded-[3rem] shadow-xl border-4 border-amber-100 relative">
+                <div className="inline-block p-12 bg-white rounded-[3rem] shadow-xl border-4 border-amber-100 relative max-w-2xl">
                   <div className="absolute -top-8 -left-8 bg-pink-400 text-white p-4 rounded-full shadow-lg rotate-12">
                     <Sparkles className="w-8 h-8" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-4">故事魔法結語</h3>
                   <p className="text-xl text-gray-600 italic">「每一個故事，都是一顆種子，在孩子的心中開出善良的花。」</p>
-                  <div className="mt-8 flex justify-center gap-4">
+                  <div className="mt-8 flex flex-col items-center gap-2">
                     <MagicButton onClick={handleReset}>創作下一個故事</MagicButton>
+                    <span className="text-gray-400 text-sm mt-4">作者：Jacky鐘 祝福您與孩子有段美好的共讀時光</span>
                   </div>
                 </div>
               </div>
@@ -254,7 +264,7 @@ const App: React.FC = () => {
         )}
 
         {status === AppStatus.ERROR && (
-          <div className="bg-white rounded-3xl shadow-xl p-12 text-center border-4 border-red-50">
+          <div className="bg-white rounded-3xl shadow-xl p-12 text-center border-4 border-red-50 max-w-2xl mx-auto">
             <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="w-10 h-10 text-red-500" />
             </div>
@@ -264,6 +274,17 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="max-w-4xl mx-auto mt-20 pt-8 border-t border-amber-200 text-center text-gray-400 pb-8 w-full">
+        <div className="flex flex-col items-center gap-2">
+          <p className="font-medium">© 2024 班級專屬繪本魔法師 | 版權所有</p>
+          <p className="flex items-center gap-1">
+            <User className="w-3 h-3" /> 設計開發：<span className="text-purple-400 font-bold">Jacky鐘</span>
+          </p>
+          <p className="text-xs mt-2 opacity-60">Powered by Google Gemini 2.5 & 3.0 API</p>
+        </div>
+      </footer>
 
       {/* Background elements */}
       <div className="fixed top-20 left-10 opacity-10 pointer-events-none hidden lg:block">
